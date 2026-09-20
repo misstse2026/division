@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>數粒王國：分寶藏大冒險 (標準直式精準對位版)</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #e0e7ff;
+      --secondary: #10b981;
+      --accent: #f59e0b;
+      --bg: #f0f9ff;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --border: #cbd5e1;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: 'Comic Sans MS', -apple-system, BlinkMacSystemFont, 'PingFang HK', 'Microsoft JhengHei', cursive, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body { 
+      background-color: var(--bg); 
+      background-image: radial-gradient(#e0f2fe 2px, transparent 2px);
+      background-size: 24px 24px;
+      color: var(--text); 
+      display: flex; 
+      flex-direction: column; 
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white; 
+      padding: 12px 20px;
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+    header h1 { font-size: 1.3rem; display: flex; align-items: center; gap: 8px; font-weight: 800; }
+    
+    .btn-custom-input {
+      padding: 10px 16px; border-radius: 12px; border: 2px solid #fcd34d; font-size: 0.95rem;
+      font-weight: bold; background: #fef3c7; color: #92400e; cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-custom-input:hover { background: #fde68a; }
+
+    main {
+      display: flex; flex: 1; gap: 16px; padding: 16px; max-width: 1280px; margin: 0 auto; width: 100%;
+    }
+
+    @media (max-width: 900px) {
+      main { flex-direction: column; }
+    }
+
+    .workspace {
+      flex: 3; background: var(--card-bg); border-radius: 20px; padding: 18px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 16px;
+      border: 3px solid #e2e8f0;
+    }
+
+    .instructions {
+      background: #f0fdf4; border: 2.5px solid #86efac; padding: 12px 16px;
+      border-radius: 14px; font-size: 1.05rem; line-height: 1.5; color: #166534;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .pool-section {
+      background: #f8fafc; border: 2.5px dashed #cbd5e1; border-radius: 16px; padding: 14px;
+      min-height: 140px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .pool-title { font-weight: bold; font-size: 1.05rem; color: #475569; display: flex; align-items: center; justify-content: space-between; }
+    .blocks-container { display: flex; flex-wrap: wrap; gap: 10px; min-height: 80px; align-items: center; }
+
+    /* Base Ten Blocks */
+    .block {
+      border-radius: 6px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; display: flex;
+      align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; color: white;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.12); position: relative;
+    }
+    .block.selected {
+      transform: scale(1.15);
+      box-shadow: 0 0 0 4px #f59e0b, 0 8px 16px rgba(0,0,0,0.25) !important;
+      z-index: 10;
+    }
+    
+    .block-hundred {
+      width: 64px; height: 64px; background: #ef4444; border: 1.5px solid #dc2626;
+      display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); gap: 1px; padding: 2px;
+    }
+    .block-hundred div { background: #fca5a5; border-radius: 1px; }
+
+    .block-ten {
+      width: 20px; height: 70px; background: #3b82f6; border: 1.5px solid #2563eb;
+      display: flex; flex-direction: column; gap: 1px; padding: 1px;
+    }
+    .block-ten div { flex: 1; background: #93c5fd; border-radius: 1px; }
+
+    .block-unit {
+      width: 24px; height: 24px; background: #10b981; border: 1.5px solid #059669; border-radius: 5px;
+    }
+
+    .action-bar { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 18px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: bold; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+    .btn:active { transform: scale(0.95); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-success { background: #10b981; color: white; animation: bounce 1.2s infinite; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* Heroes Container */
+    .heroes-container {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; flex: 1;
+      max-height: 260px; overflow-y: auto; padding-right: 4px;
+    }
+    .hero-card {
+      background: #ffffff; border: 2.5px solid #e2e8f0; border-radius: 14px; padding: 10px;
+      display: flex; flex-direction: column; align-items: center; gap: 6px; transition: all 0.2s;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .hero-card.active-target {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    }
+    .hero-avatar { font-size: 1.8rem; }
+    .hero-name { font-size: 0.85rem; font-weight: bold; color: #475569; }
+    .hero-blocks { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 45px; width: 100%; }
+
+    /* ========================================================
+       直式區域 (正確關括號弧線 `)` 廠號設計)
+       ======================================================== */
+    .notebook {
+      flex: 2; background: #fffdf0; border: 3px solid #fde68a; border-radius: 20px; padding: 18px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 14px; min-width: 320px;
+    }
+    .notebook-title { font-size: 1.15rem; font-weight: bold; color: #92400e; border-bottom: 2px dashed #fcd34d; padding-bottom: 8px; }
+
+    .division-board-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px 10px;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 2px solid #fef3c7;
+      min-height: 380px;
+    }
+
+    .division-layout {
+      display: flex;
+      align-items: flex-start;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #1e293b;
+      position: relative;
+    }
+
+    /* 除數區：加寬間距，徹底防止重疊 */
+    .divisor-box {
+      min-width: 55px;
+      text-align: right;
+      padding-right: 18px;
+      margin-top: 80px; /* 精準對齊被除數 */
+      color: #1e293b;
+      line-height: 48px;
+    }
+
+    /* 3 欄 CSS Grid (百、十、個) */
+    .grid-container {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .grid-row {
+      display: grid;
+      grid-template-columns: 46px 46px 46px;
+      height: 48px;
+      align-items: center;
+    }
+
+    .cell {
+      width: 46px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .cell.header {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      font-weight: bold;
+      height: 32px;
+    }
+
+    /* 商數列 */
+    .cell.quotient {
+      color: var(--primary);
+      font-weight: 900;
+    }
+
+    /* 正確的關括號 `)` 長除法廠號 (頂部橫線 + 向右凸出的弧線) */
+    .division-bracket-svg {
+      position: absolute;
+      top: 76px;
+      left: -14px;
+      width: calc(100% + 16px);
+      height: 52px;
+      pointer-events: none;
+    }
+
+    .cell.step {
+      color: #334155;
+    }
+
+    .grid-line {
+      width: 100%;
+      height: 3px;
+      background-color: #334155;
+      margin: 2px 0;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+      display: flex; justify-content: center; align-items: center; z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+    .modal {
+      background: white; border-radius: 20px; padding: 24px; max-width: 420px; text-align: center;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 16px; width: 90%;
+    }
+    .modal h2 { color: var(--secondary); font-size: 1.5rem; }
+    
+    .input-group { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+    .input-group label { font-size: 0.9rem; font-weight: bold; color: #475569; }
+    .input-group input { 
+      padding: 10px 14px; border-radius: 10px; border: 2px solid #cbd5e1; font-size: 1.2rem; 
+      font-weight: bold; width: 100%; outline: none;
+    }
+    .input-group input:focus { border-color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>💎 數粒王國：分寶藏大冒險</h1>
+    <button class="btn-custom-input" onclick="openCustomModal()">✏️ 出新題目</button>
+  </header>
+
+  <main>
+    <!-- 左側操作區 -->
+    <section class="workspace">
+      <div class="instructions" id="instructionText">
+        <span>🐱 貓貓導師：</span><span id="instructionBody">請輸入功課題目開始！</span>
+      </div>
+
+      <div class="pool-section">
+        <div class="pool-title">
+          <span>📦 待分配寶藏寶箱：</span>
+          <span style="font-size:0.85rem; font-weight:normal; color:#64748b;">(👉 點擊數粒 ➔ 點擊勇者分配)</span>
+        </div>
+        <div class="blocks-container" id="pool"></div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-accent" onclick="unpackSelected()">🔨 拆解選擇的數粒 (退位)</button>
+        <button class="btn btn-secondary" onclick="autoDistributeStep()">⚡ 均分一輪</button>
+        <button class="btn btn-secondary" onclick="autoStepDemo()">✨ 示範一步</button>
+        <button class="btn btn-secondary" onclick="resetLevel()">🔄 重算本題</button>
+        <!-- 分配完成後顯示的檢查按鈕 -->
+        <button class="btn btn-success" id="btnCheckResult" style="display:none;" onclick="checkAnswer()">🎯 分配完成！點擊檢查答案</button>
+      </div>
+
+      <div class="pool-title">⚔️ 勇者小隊接收區：</div>
+      <div class="heroes-container" id="heroes"></div>
+    </section>
+
+    <!-- 右側精準對位直式區域 -->
+    <section class="notebook">
+      <div class="notebook-title">📝 直式計算對照表 (標準直式對位)</div>
+      
+      <div class="division-board-wrapper">
+        <div class="division-layout">
+          
+          <!-- 除數 -->
+          <div class="divisor-box" id="ldDivisor">14</div>
+
+          <!-- 3欄固定的 CSS Grid 網格 -->
+          <div class="grid-container" id="gridContainer">
+            
+            <!-- 位數標頭 -->
+            <div class="grid-row" style="height:32px;">
+              <div class="cell header">百</div>
+              <div class="cell header">十</div>
+              <div class="cell header">個</div>
+            </div>
+
+            <!-- 商數列 -->
+            <div class="grid-row">
+              <div class="cell quotient" id="qH"></div>
+              <div class="cell quotient" id="qT"></div>
+              <div class="cell quotient" id="qU"></div>
+            </div>
+
+            <!-- 被除數列 -->
+            <div class="grid-row">
+              <div class="cell" id="dH">6</div>
+              <div class="cell" id="dT">2</div>
+              <div class="cell" id="dU">0</div>
+            </div>
+
+            <!-- 正確關括號 `)` 廠號：頂部橫線 + 向右彎曲關括號弧線 -->
+            <svg class="division-bracket-svg" viewBox="0 0 154 52" preserveAspectRatio="none">
+              <path d="M 152 4 L 0 4 C 12 16, 12 34, 0 48" fill="none" stroke="#78350f" stroke-width="3.8" stroke-linecap="round"/>
+            </svg>
+
+            <!-- 動態步驟區域 -->
+            <div id="dynamicSteps" style="display: flex; flex-direction: column;"></div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="instructions" style="background: #fef3c7; border-color: #fcd34d; color: #92400e; font-size:0.88rem; line-height: 1.4;">
+        💡 <strong>直式觀察要點：</strong><br>
+        分完數粒後，請觀察右邊直式的<strong>商數</strong>與最後一行的<strong>餘數</strong>是否與你的分配結果一致！
+      </div>
+    </section>
+  </main>
+
+  <!-- 自訂題目彈窗 -->
+  <div class="modal-overlay" id="customModal">
+    <div class="modal">
+      <h2>✏️ 請輸入題目</h2>
+      <div class="input-group">
+        <label>被除數 (寶藏總數：1 ~ 999)</label>
+        <input type="number" id="inputDividend" value="620" min="1" max="999">
+      </div>
+      <div class="input-group">
+        <label>除數 (勇者人數：1 ~ 99)</label>
+        <input type="number" id="inputDivisor" value="14" min="1" max="99">
+      </div>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <button class="btn btn-primary" style="flex:1; justify-content:center;" onclick="applyCustomProblem()">開始解題</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 勝利結算彈窗 -->
+  <div class="modal-overlay" id="victoryModal" style="display:none;">
+    <div class="modal">
+      <h2>🎉 恭喜！解答完全正確！</h2>
+      <p id="victoryText" style="font-size:1.1rem; color:#475569;">每位勇者分得正確數量的寶藏！</p>
+      <button class="btn btn-primary" style="justify-content:center; width:100%; margin-top:10px;" onclick="closeVictoryModal()">太棒了！</button>
+    </div>
+  </div>
+
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.06);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+      } else if (type === 'unpack') {
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(650, audioCtx.currentTime + 0.16);
+        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.16);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.16);
+      } else if (type === 'win') {
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.45);
+      }
+    }
+
+    let currentDividend = 620;
+    let currentDivisor = 14;
+
+    let poolBlocks = [];
+    let heroAllocations = [];
+    let selectedBlockId = null;
+
+    function initGame() {
+      poolBlocks = [];
+      let num = currentDividend;
+      
+      const hundreds = Math.floor(num / 100);
+      num %= 100;
+      const tens = Math.floor(num / 10);
+      const units = num % 10;
+
+      for(let i=0; i<hundreds; i++) poolBlocks.push({ id: 'h_'+Math.random(), type: 'hundred' });
+      for(let i=0; i<tens; i++) poolBlocks.push({ id: 't_'+Math.random(), type: 'ten' });
+      for(let i=0; i<units; i++) poolBlocks.push({ id: 'u_'+Math.random(), type: 'unit' });
+
+      heroAllocations = Array.from({ length: currentDivisor }, () => []);
+      selectedBlockId = null;
+
+      document.getElementById('btnCheckResult').style.display = 'none';
+      updateUI();
+    }
+
+    function createBlockDOM(b) {
+      const el = document.createElement('div');
+      el.className = `block block-${b.type} ${selectedBlockId === b.id ? 'selected' : ''}`;
+      
+      if (b.type === 'hundred') {
+        for(let i=0; i<100; i++) el.appendChild(document.createElement('div'));
+      } else if (b.type === 'ten') {
+        for(let i=0; i<10; i++) el.appendChild(document.createElement('div'));
+      }
+
+      el.onclick = (e) => {
+        e.stopPropagation();
+        selectedBlockId = (selectedBlockId === b.id) ? null : b.id;
+        playSound('click');
+        updateUI();
+      };
+
+      return el;
+    }
+
+    function unpackSelected() {
+      if (!selectedBlockId) {
+        alert('請先點擊選取一個百格板或十格棒！');
+        return;
+      }
+      const idx = poolBlocks.findIndex(b => b.id === selectedBlockId);
+      if (idx === -1) return;
+
+      const b = poolBlocks[idx];
+      if (b.type === 'hundred') {
+        poolBlocks.splice(idx, 1);
+        for(let i=0; i<10; i++) poolBlocks.push({ id: 't_'+Math.random(), type: 'ten' });
+        playSound('unpack');
+      } else if (b.type === 'ten') {
+        poolBlocks.splice(idx, 1);
+        for(let i=0; i<10; i++) poolBlocks.push({ id: 'u_'+Math.random(), type: 'unit' });
+        playSound('unpack');
+      } else {
+        alert('單位粒已經是最小單位，無法再拆解！');
+      }
+      selectedBlockId = null;
+      updateUI();
+    }
+
+    function autoDistributeStep() {
+      const hBlocks = poolBlocks.filter(b => b.type === 'hundred');
+      if (hBlocks.length >= currentDivisor) {
+        for(let i=0; i<currentDivisor; i++) {
+          const b = hBlocks[i];
+          poolBlocks = poolBlocks.filter(x => x.id !== b.id);
+          heroAllocations[i].push(b);
+        }
+        playSound('click');
+        updateUI();
+        return;
+      }
+
+      const tBlocks = poolBlocks.filter(b => b.type === 'ten');
+      if (tBlocks.length >= currentDivisor) {
+        for(let i=0; i<currentDivisor; i++) {
+          const b = tBlocks[i];
+          poolBlocks = poolBlocks.filter(x => x.id !== b.id);
+          heroAllocations[i].push(b);
+        }
+        playSound('click');
+        updateUI();
+        return;
+      }
+
+      const uBlocks = poolBlocks.filter(b => b.type === 'unit');
+      if (uBlocks.length >= currentDivisor) {
+        for(let i=0; i<currentDivisor; i++) {
+          const b = uBlocks[i];
+          poolBlocks = poolBlocks.filter(x => x.id !== b.id);
+          heroAllocations[i].push(b);
+        }
+        playSound('click');
+        updateUI();
+        return;
+      }
+
+      alert('剩餘數粒不足平均分給每位勇者，請嘗試點擊「拆解」！');
+    }
+
+    function autoStepDemo() {
+      const hBlocks = poolBlocks.filter(b => b.type === 'hundred');
+      if (hBlocks.length >= currentDivisor) {
+        autoDistributeStep();
+        return;
+      } else if (hBlocks.length > 0) {
+        selectedBlockId = hBlocks[0].id;
+        unpackSelected();
+        return;
+      }
+
+      const tBlocks = poolBlocks.filter(b => b.type === 'ten');
+      if (tBlocks.length >= currentDivisor) {
+        autoDistributeStep();
+        return;
+      } else if (tBlocks.length > 0) {
+        selectedBlockId = tBlocks[0].id;
+        unpackSelected();
+        return;
+      }
+
+      const uBlocks = poolBlocks.filter(b => b.type === 'unit');
+      if (uBlocks.length >= currentDivisor) {
+        autoDistributeStep();
+        return;
+      }
+    }
+
+    function resetLevel() {
+      initGame();
+    }
+
+    function openCustomModal() {
+      document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function applyCustomProblem() {
+      const dvd = parseInt(document.getElementById('inputDividend').value);
+      const dvs = parseInt(document.getElementById('inputDivisor').value);
+
+      if (isNaN(dvd) || dvd < 1 || dvd > 999) {
+        alert('請輸入 1 至 999 之間的被除數！');
+        return;
+      }
+      if (isNaN(dvs) || dvs < 1 || dvs > 99) {
+        alert('請輸入 1 至 99 之間的除數！');
+        return;
+      }
+
+      currentDividend = dvd;
+      currentDivisor = dvs;
+      document.getElementById('customModal').style.display = 'none';
+      initGame();
+    }
+
+    function updateUI() {
+      // 1. 待分配數粒
+      const poolEl = document.getElementById('pool');
+      poolEl.innerHTML = '';
+      poolBlocks.forEach(b => poolEl.appendChild(createBlockDOM(b)));
+
+      // 2. 勇者小隊
+      const heroesEl = document.getElementById('heroes');
+      heroesEl.innerHTML = '';
+      const avatars = ['🧙‍♂️', '🧝‍♀️', '⚔️', '🛡️', '🏹', '🧙‍♀️', '騎', '👑'];
+
+      heroAllocations.forEach((alloc, idx) => {
+        const card = document.createElement('div');
+        card.className = `hero-card ${selectedBlockId ? 'active-target' : ''}`;
+        card.innerHTML = `<div class="hero-avatar">${avatars[idx % avatars.length]}</div><div class="hero-name">勇者 ${idx+1}</div>`;
+        
+        const blockBox = document.createElement('div');
+        blockBox.className = 'hero-blocks';
+        alloc.forEach(b => blockBox.appendChild(createBlockDOM(b)));
+        card.appendChild(blockBox);
+
+        card.onclick = () => {
+          if (selectedBlockId) {
+            const pIdx = poolBlocks.findIndex(b => b.id === selectedBlockId);
+            if (pIdx !== -1) {
+              const b = poolBlocks.splice(pIdx, 1)[0];
+              heroAllocations[idx].push(b);
+              selectedBlockId = null;
+              playSound('click');
+              updateUI();
+            }
+          }
+        };
+
+        heroesEl.appendChild(card);
+      });
+
+      // 3. 填寫除數與被除數
+      document.getElementById('ldDivisor').innerText = currentDivisor;
+      
+      const numStr = currentDividend.toString().padStart(3, ' ');
+      document.getElementById('dH').innerText = numStr[0] !== ' ' ? numStr[0] : '';
+      document.getElementById('dT').innerText = numStr[1] !== ' ' ? numStr[1] : '';
+      document.getElementById('dU').innerText = numStr[2];
+
+      // 計算分配商數
+      const hCount = heroAllocations[0].filter(b => b.type === 'hundred').length;
+      const tCount = heroAllocations[0].filter(b => b.type === 'ten').length;
+      const uCount = heroAllocations[0].filter(b => b.type === 'unit').length;
+
+      // 商數位置填寫
+      document.getElementById('qH').innerText = hCount > 0 ? hCount : '';
+      
+      if (tCount > 0) {
+        document.getElementById('qT').innerText = tCount;
+      } else if (hCount > 0 && (uCount > 0 || poolBlocks.some(b => b.type === 'unit'))) {
+        document.getElementById('qT').innerText = '0';
+      } else {
+        document.getElementById('qT').innerText = '';
+      }
+
+      document.getElementById('qU').innerText = uCount > 0 ? uCount : '';
+
+      // 4. 動態生成精準對位的直式步驟
+      renderCorrectDivisionSteps(hCount, tCount, uCount);
+
+      // 5. 判斷是否分配完畢，顯示「檢查答案」按鈕
+      const checkBtn = document.getElementById('btnCheckResult');
+      const instructionEl = document.getElementById('instructionBody');
+
+      if (poolBlocks.length < currentDivisor && poolBlocks.every(b => b.type === 'unit')) {
+        const isBalanced = heroAllocations.every(a => a.length === heroAllocations[0].length);
+        if (heroAllocations[0].length > 0 && isBalanced) {
+          checkBtn.style.display = 'inline-flex';
+          instructionEl.innerHTML = `🌟 寶藏已分配完畢！請觀察右側直式，確認無誤後點擊<b>「🎯 分配完成！點擊檢查答案」</b>！`;
+          return;
+        }
+      }
+      
+      checkBtn.style.display = 'none';
+      instructionEl.innerHTML = `請將 ${currentDividend} 寶藏平均分給 ${currentDivisor} 位勇者。`;
+    }
+
+    function checkAnswer() {
+      const hCount = heroAllocations[0].filter(b => b.type === 'hundred').length;
+      const tCount = heroAllocations[0].filter(b => b.type === 'ten').length;
+      const uCount = heroAllocations[0].filter(b => b.type === 'unit').length;
+      const valPerHero = hCount * 100 + tCount * 10 + uCount;
+
+      document.getElementById('victoryText').innerText = `每位勇者分得 ${valPerHero} 寶藏！(餘數：${poolBlocks.length})`;
+      document.getElementById('victoryModal').style.display = 'flex';
+      playSound('win');
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+
+    function renderCorrectDivisionSteps(hCount, tCount, uCount) {
+      const container = document.getElementById('dynamicSteps');
+      container.innerHTML = '';
+
+      const dvd = currentDividend;
+      const dvs = currentDivisor;
+
+      const dvdStr = dvd.toString().padStart(3, ' ');
+      const dH = dvdStr[0] !== ' ' ? parseInt(dvdStr[0]) : 0;
+      const dT = dvdStr[1] !== ' ' ? parseInt(dvdStr[1]) : 0;
+      const dU = parseInt(dvdStr[2]);
+
+      const firstTwoDigits = dH * 10 + dT;
+
+      if (firstTwoDigits < dvs && dH === 0) {
+        if (uCount > 0) {
+          let mult = uCount * dvs;
+          let mTen = Math.floor(mult / 10);
+          let mUnit = mult % 10;
+          container.appendChild(createGridRow(['', mTen || '', mUnit]));
+          container.appendChild(createGridLine());
+          let rem = dvd - mult;
+          let rTen = Math.floor(rem / 10);
+          let rUnit = rem % 10;
+          container.appendChild(createGridRow(['', rTen || '', rUnit]));
+        }
+        return;
+      }
+
+      if (tCount > 0 || uCount > 0) {
+        let multT = tCount * dvs;
+        if (multT > 0) {
+          let multH_digit = Math.floor(multT / 10);
+          let multT_digit = multT % 10;
+          container.appendChild(createGridRow([multH_digit, multT_digit, '']));
+          container.appendChild(createGridLine());
+
+          let remT = firstTwoDigits - multT; 
+          if (uCount > 0 || poolBlocks.some(b => b.type === 'unit')) {
+            let remH_digit = Math.floor(remT / 10);
+            let remT_digit = remT % 10;
+            container.appendChild(createGridRow([remH_digit || '', remT_digit, dU]));
+          }
+        }
+      }
+
+      if (uCount > 0) {
+        let multU = uCount * dvs;
+        let mH = Math.floor(multU / 100);
+        let mT = Math.floor((multU % 100) / 10);
+        let mU = multU % 10;
+
+        container.appendChild(createGridRow([mH || '', mT || '', mU]));
+        container.appendChild(createGridLine());
+
+        let remFinal = dvd - (hCount * 100 + tCount * 10 + uCount) * dvs;
+        let rH = Math.floor(remFinal / 100);
+        let rT = Math.floor((remFinal % 100) / 10);
+        let rU = remFinal % 10;
+
+        container.appendChild(createGridRow([rH || '', rT || '', rU]));
+      }
+    }
+
+    function createGridRow(cellsArray) {
+      const row = document.createElement('div');
+      row.className = 'grid-row';
+      cellsArray.forEach(val => {
+        const c = document.createElement('div');
+        c.className = 'cell step';
+        c.innerText = (val !== 0) ? val : '0';
+        if (val === '') c.innerText = '';
+        row.appendChild(c);
+      });
+      return row;
+    }
+
+    function createGridLine() {
+      const line = document.createElement('div');
+      line.className = 'grid-line';
+      return line;
+    }
+
+    function closeVictoryModal() {
+      document.getElementById('victoryModal').style.display = 'none';
+    }
+
+    openCustomModal();
+  </script>
+</body>
+</html>

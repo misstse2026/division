@@ -317,7 +317,7 @@
       </div>
 
       <div class="action-bar">
-        <button class="btn btn-accent" onclick="autoUnpackOneLevel()">⚡ 一鍵自動退位 / 拆解</button>
+        <button class="btn btn-accent" onclick="autoUnpackOneLevel()">⚡ 一鍵全退位 / 拆解</button>
         <button class="btn btn-secondary" onclick="autoDistributeStep()">⚡ 均分一輪</button>
         <button class="btn btn-secondary" onclick="resetLevel()">🔄 重算本題</button>
       </div>
@@ -575,21 +575,31 @@
       return el;
     }
 
-    // 一鍵自動退位/拆解
+    // 一鍵自動直接把【所有】百位數或十位數退位
     function autoUnpackOneLevel() {
-      const hIdx = poolBlocks.findIndex(b => b.type === 'hundred');
-      if (hIdx !== -1) {
-        poolBlocks.splice(hIdx, 1);
-        for(let i=0; i<10; i++) poolBlocks.push({ id: 't_'+Math.random(), type: 'ten' });
+      const hBlocks = poolBlocks.filter(b => b.type === 'hundred');
+      if (hBlocks.length > 0) {
+        // 移除所有百格板
+        poolBlocks = poolBlocks.filter(b => b.type !== 'hundred');
+        // 一個百格板換10個十格棒
+        const countToGenerate = hBlocks.length * 10;
+        for(let i=0; i<countToGenerate; i++) {
+          poolBlocks.push({ id: 't_'+Math.random(), type: 'ten' });
+        }
         playSound('unpack');
         updateUI();
         return;
       }
 
-      const tIdx = poolBlocks.findIndex(b => b.type === 'ten');
-      if (tIdx !== -1) {
-        poolBlocks.splice(tIdx, 1);
-        for(let i=0; i<10; i++) poolBlocks.push({ id: 'u_'+Math.random(), type: 'unit' });
+      const tBlocks = poolBlocks.filter(b => b.type === 'ten');
+      if (tBlocks.length > 0) {
+        // 移除所有十格棒
+        poolBlocks = poolBlocks.filter(b => b.type !== 'ten');
+        // 一個十格棒換10個單位粒
+        const countToGenerate = tBlocks.length * 10;
+        for(let i=0; i<countToGenerate; i++) {
+          poolBlocks.push({ id: 'u_'+Math.random(), type: 'unit' });
+        }
         playSound('unpack');
         updateUI();
         return;
@@ -635,7 +645,7 @@
         return;
       }
 
-      alert('剩餘數粒不足平均分給每位勇者，請點擊「⚡ 一鍵自動退位」！');
+      alert('剩餘數粒不足平均分給每位勇者，請點擊「⚡ 一鍵全退位 / 拆解」！');
     }
 
     function resetLevel() {
@@ -710,7 +720,7 @@
       if (poolBlocks.length < currentDivisor && poolBlocks.every(b => b.type === 'unit')) {
         instructionEl.innerHTML = `🌟 數粒已分配完畢！請觀察每人分得多少，並在右邊直式填入答案！`;
       } else {
-        instructionEl.innerHTML = `請將 ${currentDividend} 寶藏平均分給 ${currentDivisor} 位勇者。若不足請點擊「⚡ 一鍵自動退位」。`;
+        instructionEl.innerHTML = `請將 ${currentDividend} 寶藏平均分給 ${currentDivisor} 位勇者。若不足請點擊「⚡ 一鍵全退位」。`;
       }
     }
 

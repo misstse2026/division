@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>數粒王國：分寶藏大冒險 (標準直式精準對位版)</title>
+  <title>數粒王國：分寶藏大冒險 (標準長除法引導教學版)</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
@@ -123,12 +123,7 @@
     .btn-primary { background: var(--primary); color: white; }
     .btn-secondary { background: #e2e8f0; color: #334155; }
     .btn-accent { background: var(--accent); color: white; }
-    .btn-success { background: #10b981; color: white; animation: bounce 1.2s infinite; }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
-    }
+    .btn-success { background: #10b981; color: white; }
 
     /* Heroes Container */
     .heroes-container {
@@ -155,11 +150,11 @@
     .hero-blocks { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 45px; width: 100%; }
 
     /* ========================================================
-       直式區域 (正確關括號弧線 `)` 廠號設計)
+       直式區域 (精準長除法廠號結構 + 動態網格適應)
        ======================================================== */
     .notebook {
       flex: 2; background: #fffdf0; border: 3px solid #fde68a; border-radius: 20px; padding: 18px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 14px; min-width: 320px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 14px; min-width: 340px;
     }
     .notebook-title { font-size: 1.15rem; font-weight: bold; color: #92400e; border-bottom: 2px dashed #fcd34d; padding-bottom: 8px; }
 
@@ -171,30 +166,31 @@
       background: #ffffff;
       border-radius: 16px;
       border: 2px solid #fef3c7;
-      min-height: 380px;
+      min-height: 410px;
     }
 
     .division-layout {
       display: flex;
       align-items: flex-start;
       font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 2.2rem;
+      font-size: 2rem;
       font-weight: 800;
       color: #1e293b;
       position: relative;
     }
 
-    /* 除數區：加寬間距，徹底防止重疊 */
+    /* 除數：完全位於弧線左側，並留有充分間距 */
     .divisor-box {
-      min-width: 55px;
-      text-align: right;
-      padding-right: 18px;
-      margin-top: 80px; /* 精準對齊被除數 */
+      font-size: 2rem;
+      font-weight: 800;
       color: #1e293b;
       line-height: 48px;
+      margin-top: 80px; 
+      padding-right: 18px;
+      text-align: right;
+      white-space: nowrap;
     }
 
-    /* 3 欄 CSS Grid (百、十、個) */
     .grid-container {
       display: flex;
       flex-direction: column;
@@ -203,13 +199,16 @@
 
     .grid-row {
       display: grid;
-      grid-template-columns: 46px 46px 46px;
       height: 48px;
       align-items: center;
     }
 
+    /* 網格欄數切換 (2欄 vs 3欄) */
+    .grid-row.cols-3 { grid-template-columns: 48px 48px 48px; }
+    .grid-row.cols-2 { grid-template-columns: 48px 48px; }
+
     .cell {
-      width: 46px;
+      width: 48px;
       height: 48px;
       display: flex;
       align-items: center;
@@ -224,24 +223,47 @@
       height: 32px;
     }
 
-    /* 商數列 */
-    .cell.quotient {
-      color: var(--primary);
-      font-weight: 900;
+    /* 引導學生輸入框 */
+    .input-cell {
+      width: 40px;
+      height: 42px;
+      border: 2px dashed #94a3b8;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #4f46e5;
+      background: #f8fafc;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .input-cell:focus {
+      border-color: #4f46e5;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    .input-cell.correct {
+      border: 2px solid #10b981;
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .input-cell.wrong {
+      border: 2px solid #ef4444;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .input-cell.pulldown {
+      border-color: #f59e0b;
+      background: #fef3c7;
     }
 
-    /* 正確的關括號 `)` 長除法廠號 (頂部橫線 + 向右凸出的弧線) */
+    /* 標準關括號 `)` 長除法廠號 */
     .division-bracket-svg {
       position: absolute;
       top: 76px;
-      left: -14px;
-      width: calc(100% + 16px);
+      left: -16px;
       height: 52px;
       pointer-events: none;
-    }
-
-    .cell.step {
-      color: #334155;
     }
 
     .grid-line {
@@ -283,7 +305,7 @@
     <!-- 左側操作區 -->
     <section class="workspace">
       <div class="instructions" id="instructionText">
-        <span>🐱 貓貓導師：</span><span id="instructionBody">請輸入功課題目開始！</span>
+        <span>🐱 貓貓導師：</span><span id="instructionBody">請點擊「一鍵自動退位」或手動分數粒！</span>
       </div>
 
       <div class="pool-section">
@@ -295,21 +317,18 @@
       </div>
 
       <div class="action-bar">
-        <button class="btn btn-accent" onclick="unpackSelected()">🔨 拆解選擇的數粒 (退位)</button>
+        <button class="btn btn-accent" onclick="autoUnpackOneLevel()">⚡ 一鍵自動退位 / 拆解</button>
         <button class="btn btn-secondary" onclick="autoDistributeStep()">⚡ 均分一輪</button>
-        <button class="btn btn-secondary" onclick="autoStepDemo()">✨ 示範一步</button>
         <button class="btn btn-secondary" onclick="resetLevel()">🔄 重算本題</button>
-        <!-- 分配完成後顯示的檢查按鈕 -->
-        <button class="btn btn-success" id="btnCheckResult" style="display:none;" onclick="checkAnswer()">🎯 分配完成！點擊檢查答案</button>
       </div>
 
       <div class="pool-title">⚔️ 勇者小隊接收區：</div>
       <div class="heroes-container" id="heroes"></div>
     </section>
 
-    <!-- 右側精準對位直式區域 -->
+    <!-- 右側學生自主填空直式區域 -->
     <section class="notebook">
-      <div class="notebook-title">📝 直式計算對照表 (標準直式對位)</div>
+      <div class="notebook-title">📝 直式填空 (觀察數粒並自己動手填)</div>
       
       <div class="division-board-wrapper">
         <div class="division-layout">
@@ -317,45 +336,20 @@
           <!-- 除數 -->
           <div class="divisor-box" id="ldDivisor">14</div>
 
-          <!-- 3欄固定的 CSS Grid 網格 -->
+          <!-- 動態網格容器 (2欄或3欄) -->
           <div class="grid-container" id="gridContainer">
-            
-            <!-- 位數標頭 -->
-            <div class="grid-row" style="height:32px;">
-              <div class="cell header">百</div>
-              <div class="cell header">十</div>
-              <div class="cell header">個</div>
-            </div>
-
-            <!-- 商數列 -->
-            <div class="grid-row">
-              <div class="cell quotient" id="qH"></div>
-              <div class="cell quotient" id="qT"></div>
-              <div class="cell quotient" id="qU"></div>
-            </div>
-
-            <!-- 被除數列 -->
-            <div class="grid-row">
-              <div class="cell" id="dH">6</div>
-              <div class="cell" id="dT">2</div>
-              <div class="cell" id="dU">0</div>
-            </div>
-
-            <!-- 正確關括號 `)` 廠號：頂部橫線 + 向右彎曲關括號弧線 -->
-            <svg class="division-bracket-svg" viewBox="0 0 154 52" preserveAspectRatio="none">
-              <path d="M 152 4 L 0 4 C 12 16, 12 34, 0 48" fill="none" stroke="#78350f" stroke-width="3.8" stroke-linecap="round"/>
-            </svg>
-
-            <!-- 動態步驟區域 -->
-            <div id="dynamicSteps" style="display: flex; flex-direction: column;"></div>
-
+            <!-- 內容由 JS 動態建立 -->
           </div>
+
         </div>
       </div>
 
+      <button class="btn btn-success" style="justify-content:center; width:100%; font-size:1.1rem; padding:12px;" onclick="verifyInputs()">🎯 檢查我的直式答案</button>
+
       <div class="instructions" style="background: #fef3c7; border-color: #fcd34d; color: #92400e; font-size:0.88rem; line-height: 1.4;">
-        💡 <strong>直式觀察要點：</strong><br>
-        分完數粒後，請觀察右邊直式的<strong>商數</strong>與最後一行的<strong>餘數</strong>是否與你的分配結果一致！
+        💡 <strong>小貼士：</strong><br>
+        1. 觀察每位勇者分得多少十格棒與單位粒，將數字填入**商數**。<br>
+        2. 計算十位相減後，若需要請在黃色空格將被除數的**個位數字拉下來**！
       </div>
     </section>
   </main>
@@ -381,9 +375,9 @@
   <!-- 勝利結算彈窗 -->
   <div class="modal-overlay" id="victoryModal" style="display:none;">
     <div class="modal">
-      <h2>🎉 恭喜！解答完全正確！</h2>
-      <p id="victoryText" style="font-size:1.1rem; color:#475569;">每位勇者分得正確數量的寶藏！</p>
-      <button class="btn btn-primary" style="justify-content:center; width:100%; margin-top:10px;" onclick="closeVictoryModal()">太棒了！</button>
+      <h2>🎉 太棒了！直式計算完全正確！</h2>
+      <p id="victoryText" style="font-size:1.1rem; color:#475569;">你成功學會了長除法的精髓！</p>
+      <button class="btn btn-primary" style="justify-content:center; width:100%; margin-top:10px;" onclick="closeVictoryModal()">讚！繼續挑戰</button>
     </div>
   </div>
 
@@ -439,8 +433,126 @@
       heroAllocations = Array.from({ length: currentDivisor }, () => []);
       selectedBlockId = null;
 
-      document.getElementById('btnCheckResult').style.display = 'none';
+      renderDivisionGrid();
       updateUI();
+    }
+
+    // 根據商的位數動態渲染直式結構 (2欄 vs 3欄)
+    function renderDivisionGrid() {
+      const container = document.getElementById('gridContainer');
+      container.innerHTML = '';
+
+      const quotient = Math.floor(currentDividend / currentDivisor);
+      const isTwoDigitQuotient = quotient >= 10; // 商是否為兩位數
+
+      const colClass = isTwoDigitQuotient ? 'cols-3' : 'cols-2';
+      const widthPx = isTwoDigitQuotient ? 144 : 96; 
+      const svgWidth = widthPx + 18;
+
+      if (isTwoDigitQuotient) {
+        // === 3 欄直式 (商為兩位數：如 620 ÷ 14 = 44...4) ===
+        const numStr = currentDividend.toString().padStart(3, '0');
+        container.innerHTML = `
+          <!-- 位數標頭 -->
+          <div class="grid-row ${colClass}" style="height:32px;">
+            <div class="cell header">百</div>
+            <div class="cell header">十</div>
+            <div class="cell header">個</div>
+          </div>
+
+          <!-- 商數列 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell"><input type="text" class="input-cell" id="in_qH" maxlength="1"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_qT" maxlength="1"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_qU" maxlength="1"></div>
+          </div>
+
+          <!-- 被除數列 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell">${numStr[0]}</div>
+            <div class="cell">${numStr[1]}</div>
+            <div class="cell">${numStr[2]}</div>
+          </div>
+
+          <!-- 關括號 SVG -->
+          <svg class="division-bracket-svg" style="width:${svgWidth}px;" viewBox="0 0 ${svgWidth} 52" preserveAspectRatio="none">
+            <path d="M ${svgWidth-2} 4 L 0 4 C 14 16, 14 34, 0 48" fill="none" stroke="#78350f" stroke-width="3.8" stroke-linecap="round"/>
+          </svg>
+
+          <!-- 步驟 1：十位乘積 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell"><input type="text" class="input-cell" id="in_s1_H" maxlength="1"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_s1_T" maxlength="1"></div>
+            <div class="cell"></div>
+          </div>
+
+          <div class="grid-line"></div>
+
+          <!-- 步驟 2：十位相減 + 個位下拉 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_s2_T" maxlength="1"></div>
+            <div class="cell"><input type="text" class="input-cell pulldown" id="in_s2_U" maxlength="1" placeholder="↓"></div>
+          </div>
+
+          <!-- 步驟 3：個位乘積 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_s3_T" maxlength="1"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_s3_U" maxlength="1"></div>
+          </div>
+
+          <div class="grid-line"></div>
+
+          <!-- 步驟 4：最終餘數 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_r_T" maxlength="1"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_r_U" maxlength="1"></div>
+          </div>
+        `;
+      } else {
+        // === 2 欄直式 (商為一位數：如 84 ÷ 12 = 7) ===
+        const numStr = currentDividend.toString().padStart(2, '0');
+        container.innerHTML = `
+          <!-- 位數標頭 -->
+          <div class="grid-row ${colClass}" style="height:32px;">
+            <div class="cell header">十</div>
+            <div class="cell header">個</div>
+          </div>
+
+          <!-- 商數列 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_qU" maxlength="1"></div>
+          </div>
+
+          <!-- 被除數列 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell">${numStr[0]}</div>
+            <div class="cell">${numStr[1]}</div>
+          </div>
+
+          <!-- 關括號 SVG -->
+          <svg class="division-bracket-svg" style="width:${svgWidth}px;" viewBox="0 0 ${svgWidth} 52" preserveAspectRatio="none">
+            <path d="M ${svgWidth-2} 4 L 0 4 C 14 16, 14 34, 0 48" fill="none" stroke="#78350f" stroke-width="3.8" stroke-linecap="round"/>
+          </svg>
+
+          <!-- 步驟 1：乘積 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell"><input type="text" class="input-cell" id="in_s1_T" maxlength="1"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_s1_U" maxlength="1"></div>
+          </div>
+
+          <div class="grid-line"></div>
+
+          <!-- 步驟 2：餘數 -->
+          <div class="grid-row ${colClass}">
+            <div class="cell"><input type="text" class="input-cell" id="in_r_T" maxlength="1"></div>
+            <div class="cell"><input type="text" class="input-cell" id="in_r_U" maxlength="1"></div>
+          </div>
+        `;
+      }
     }
 
     function createBlockDOM(b) {
@@ -463,28 +575,27 @@
       return el;
     }
 
-    function unpackSelected() {
-      if (!selectedBlockId) {
-        alert('請先點擊選取一個百格板或十格棒！');
-        return;
-      }
-      const idx = poolBlocks.findIndex(b => b.id === selectedBlockId);
-      if (idx === -1) return;
-
-      const b = poolBlocks[idx];
-      if (b.type === 'hundred') {
-        poolBlocks.splice(idx, 1);
+    // 一鍵自動退位/拆解
+    function autoUnpackOneLevel() {
+      const hIdx = poolBlocks.findIndex(b => b.type === 'hundred');
+      if (hIdx !== -1) {
+        poolBlocks.splice(hIdx, 1);
         for(let i=0; i<10; i++) poolBlocks.push({ id: 't_'+Math.random(), type: 'ten' });
         playSound('unpack');
-      } else if (b.type === 'ten') {
-        poolBlocks.splice(idx, 1);
+        updateUI();
+        return;
+      }
+
+      const tIdx = poolBlocks.findIndex(b => b.type === 'ten');
+      if (tIdx !== -1) {
+        poolBlocks.splice(tIdx, 1);
         for(let i=0; i<10; i++) poolBlocks.push({ id: 'u_'+Math.random(), type: 'unit' });
         playSound('unpack');
-      } else {
-        alert('單位粒已經是最小單位，無法再拆解！');
+        updateUI();
+        return;
       }
-      selectedBlockId = null;
-      updateUI();
+
+      alert('寶箱內已沒有可以拆解的百格板或十格棒！');
     }
 
     function autoDistributeStep() {
@@ -524,35 +635,7 @@
         return;
       }
 
-      alert('剩餘數粒不足平均分給每位勇者，請嘗試點擊「拆解」！');
-    }
-
-    function autoStepDemo() {
-      const hBlocks = poolBlocks.filter(b => b.type === 'hundred');
-      if (hBlocks.length >= currentDivisor) {
-        autoDistributeStep();
-        return;
-      } else if (hBlocks.length > 0) {
-        selectedBlockId = hBlocks[0].id;
-        unpackSelected();
-        return;
-      }
-
-      const tBlocks = poolBlocks.filter(b => b.type === 'ten');
-      if (tBlocks.length >= currentDivisor) {
-        autoDistributeStep();
-        return;
-      } else if (tBlocks.length > 0) {
-        selectedBlockId = tBlocks[0].id;
-        unpackSelected();
-        return;
-      }
-
-      const uBlocks = poolBlocks.filter(b => b.type === 'unit');
-      if (uBlocks.length >= currentDivisor) {
-        autoDistributeStep();
-        return;
-      }
+      alert('剩餘數粒不足平均分給每位勇者，請點擊「⚡ 一鍵自動退位」！');
     }
 
     function resetLevel() {
@@ -619,145 +702,102 @@
         heroesEl.appendChild(card);
       });
 
-      // 3. 填寫除數與被除數
+      // 3. 填寫除數
       document.getElementById('ldDivisor').innerText = currentDivisor;
-      
-      const numStr = currentDividend.toString().padStart(3, ' ');
-      document.getElementById('dH').innerText = numStr[0] !== ' ' ? numStr[0] : '';
-      document.getElementById('dT').innerText = numStr[1] !== ' ' ? numStr[1] : '';
-      document.getElementById('dU').innerText = numStr[2];
 
-      // 計算分配商數
-      const hCount = heroAllocations[0].filter(b => b.type === 'hundred').length;
-      const tCount = heroAllocations[0].filter(b => b.type === 'ten').length;
-      const uCount = heroAllocations[0].filter(b => b.type === 'unit').length;
-
-      // 商數位置填寫
-      document.getElementById('qH').innerText = hCount > 0 ? hCount : '';
-      
-      if (tCount > 0) {
-        document.getElementById('qT').innerText = tCount;
-      } else if (hCount > 0 && (uCount > 0 || poolBlocks.some(b => b.type === 'unit'))) {
-        document.getElementById('qT').innerText = '0';
-      } else {
-        document.getElementById('qT').innerText = '';
-      }
-
-      document.getElementById('qU').innerText = uCount > 0 ? uCount : '';
-
-      // 4. 動態生成精準對位的直式步驟
-      renderCorrectDivisionSteps(hCount, tCount, uCount);
-
-      // 5. 判斷是否分配完畢，顯示「檢查答案」按鈕
-      const checkBtn = document.getElementById('btnCheckResult');
       const instructionEl = document.getElementById('instructionBody');
 
       if (poolBlocks.length < currentDivisor && poolBlocks.every(b => b.type === 'unit')) {
-        const isBalanced = heroAllocations.every(a => a.length === heroAllocations[0].length);
-        if (heroAllocations[0].length > 0 && isBalanced) {
-          checkBtn.style.display = 'inline-flex';
-          instructionEl.innerHTML = `🌟 寶藏已分配完畢！請觀察右側直式，確認無誤後點擊<b>「🎯 分配完成！點擊檢查答案」</b>！`;
-          return;
-        }
+        instructionEl.innerHTML = `🌟 數粒已分配完畢！請觀察每人分得多少，並在右邊直式填入答案！`;
+      } else {
+        instructionEl.innerHTML = `請將 ${currentDividend} 寶藏平均分給 ${currentDivisor} 位勇者。若不足請點擊「⚡ 一鍵自動退位」。`;
       }
-      
-      checkBtn.style.display = 'none';
-      instructionEl.innerHTML = `請將 ${currentDividend} 寶藏平均分給 ${currentDivisor} 位勇者。`;
     }
 
-    function checkAnswer() {
-      const hCount = heroAllocations[0].filter(b => b.type === 'hundred').length;
-      const tCount = heroAllocations[0].filter(b => b.type === 'ten').length;
-      const uCount = heroAllocations[0].filter(b => b.type === 'unit').length;
-      const valPerHero = hCount * 100 + tCount * 10 + uCount;
+    // 檢查學生的直式輸入（智慧型雙模式校對）
+    function verifyInputs() {
+      const q = Math.floor(currentDividend / currentDivisor);
+      const rem = currentDividend % currentDivisor;
+      const isTwoDigitQuotient = q >= 10;
 
-      document.getElementById('victoryText').innerText = `每位勇者分得 ${valPerHero} 寶藏！(餘數：${poolBlocks.length})`;
-      document.getElementById('victoryModal').style.display = 'flex';
-      playSound('win');
-      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-    }
+      let allCorrect = true;
 
-    function renderCorrectDivisionSteps(hCount, tCount, uCount) {
-      const container = document.getElementById('dynamicSteps');
-      container.innerHTML = '';
+      function check(id, expected) {
+        const input = document.getElementById(id);
+        if (!input) return;
+        const val = input.value.trim();
 
-      const dvd = currentDividend;
-      const dvs = currentDivisor;
-
-      const dvdStr = dvd.toString().padStart(3, ' ');
-      const dH = dvdStr[0] !== ' ' ? parseInt(dvdStr[0]) : 0;
-      const dT = dvdStr[1] !== ' ' ? parseInt(dvdStr[1]) : 0;
-      const dU = parseInt(dvdStr[2]);
-
-      const firstTwoDigits = dH * 10 + dT;
-
-      if (firstTwoDigits < dvs && dH === 0) {
-        if (uCount > 0) {
-          let mult = uCount * dvs;
-          let mTen = Math.floor(mult / 10);
-          let mUnit = mult % 10;
-          container.appendChild(createGridRow(['', mTen || '', mUnit]));
-          container.appendChild(createGridLine());
-          let rem = dvd - mult;
-          let rTen = Math.floor(rem / 10);
-          let rUnit = rem % 10;
-          container.appendChild(createGridRow(['', rTen || '', rUnit]));
-        }
-        return;
-      }
-
-      if (tCount > 0 || uCount > 0) {
-        let multT = tCount * dvs;
-        if (multT > 0) {
-          let multH_digit = Math.floor(multT / 10);
-          let multT_digit = multT % 10;
-          container.appendChild(createGridRow([multH_digit, multT_digit, '']));
-          container.appendChild(createGridLine());
-
-          let remT = firstTwoDigits - multT; 
-          if (uCount > 0 || poolBlocks.some(b => b.type === 'unit')) {
-            let remH_digit = Math.floor(remT / 10);
-            let remT_digit = remT % 10;
-            container.appendChild(createGridRow([remH_digit || '', remT_digit, dU]));
-          }
+        if (expected === '' && val === '') {
+          input.classList.remove('wrong');
+          input.classList.add('correct');
+        } else if (val === expected) {
+          input.classList.remove('wrong');
+          input.classList.add('correct');
+        } else {
+          input.classList.remove('correct');
+          input.classList.add('wrong');
+          allCorrect = false;
         }
       }
 
-      if (uCount > 0) {
-        let multU = uCount * dvs;
-        let mH = Math.floor(multU / 100);
-        let mT = Math.floor((multU % 100) / 10);
-        let mU = multU % 10;
+      if (isTwoDigitQuotient) {
+        // === 3 欄長除法校對 ===
+        const qT_ans = Math.floor(q / 10).toString();
+        const qU_ans = (q % 10).toString();
 
-        container.appendChild(createGridRow([mH || '', mT || '', mU]));
-        container.appendChild(createGridLine());
+        const s1_val = Math.floor(q / 10) * currentDivisor;
+        const s1_H_ans = Math.floor(s1_val / 10).toString();
+        const s1_T_ans = (s1_val % 10).toString();
 
-        let remFinal = dvd - (hCount * 100 + tCount * 10 + uCount) * dvs;
-        let rH = Math.floor(remFinal / 100);
-        let rT = Math.floor((remFinal % 100) / 10);
-        let rU = remFinal % 10;
+        const dvd_first2 = Math.floor(currentDividend / 10);
+        const rem1 = dvd_first2 - s1_val;
+        const s2_T_ans = rem1.toString();
+        const s2_U_ans = (currentDividend % 10).toString(); // 個位下拉
 
-        container.appendChild(createGridRow([rH || '', rT || '', rU]));
+        const s3_val = (q % 10) * currentDivisor;
+        const s3_T_ans = Math.floor(s3_val / 10).toString();
+        const s3_U_ans = (s3_val % 10).toString();
+
+        const r_T_ans = (rem >= 10) ? Math.floor(rem / 10).toString() : '';
+        const r_U_ans = (rem % 10).toString();
+
+        check('in_qH', '');
+        check('in_qT', qT_ans);
+        check('in_qU', qU_ans);
+        check('in_s1_H', s1_H_ans);
+        check('in_s1_T', s1_T_ans);
+        check('in_s2_T', s2_T_ans);
+        check('in_s2_U', s2_U_ans);
+        check('in_s3_T', s3_T_ans);
+        check('in_s3_U', s3_U_ans);
+        check('in_r_U', r_U_ans);
+        if (rem >= 10) check('in_r_T', r_T_ans);
+      } else {
+        // === 2 欄短除法校對 ===
+        const qU_ans = q.toString();
+        const mult = q * currentDivisor;
+
+        const s1_T_ans = (mult >= 10) ? Math.floor(mult / 10).toString() : '';
+        const s1_U_ans = (mult % 10).toString();
+
+        const r_T_ans = (rem >= 10) ? Math.floor(rem / 10).toString() : '';
+        const r_U_ans = rem.toString();
+
+        check('in_qU', qU_ans);
+        check('in_s1_U', s1_U_ans);
+        if (mult >= 10) check('in_s1_T', s1_T_ans);
+        check('in_r_U', r_U_ans);
+        if (rem >= 10) check('in_r_T', r_T_ans);
       }
-    }
 
-    function createGridRow(cellsArray) {
-      const row = document.createElement('div');
-      row.className = 'grid-row';
-      cellsArray.forEach(val => {
-        const c = document.createElement('div');
-        c.className = 'cell step';
-        c.innerText = (val !== 0) ? val : '0';
-        if (val === '') c.innerText = '';
-        row.appendChild(c);
-      });
-      return row;
-    }
-
-    function createGridLine() {
-      const line = document.createElement('div');
-      line.className = 'grid-line';
-      return line;
+      if (allCorrect) {
+        document.getElementById('victoryText').innerText = `每位勇者分得 ${q} 寶藏，餘數為 ${rem}！`;
+        document.getElementById('victoryModal').style.display = 'flex';
+        playSound('win');
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      } else {
+        alert('直式中有部分數字不正確或尚未填寫，請再仔細檢查一次喔！');
+      }
     }
 
     function closeVictoryModal() {

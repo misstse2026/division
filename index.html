@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>數粒王國：小四長除法自主練習 (修正直式格仔版)</title>
+  <title>數粒王國：小四長除法自主練習 (完整重置版)</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
@@ -332,11 +332,12 @@
     </div>
   </div>
 
+  <!-- 生命值耗盡提示 Modal -->
   <div class="modal-overlay" id="outOfHealthModal" style="display:none;">
     <div class="modal">
       <h2 style="color:#ef4444;">💔 生命值耗盡了！</h2>
-      <p style="font-size:1.1rem; color:#475569; line-height:1.5;">別擔心！試著看左邊的<b>「數粒寶箱」</b>與<b>「勇者分得數量」</b>，重新思考後再試一次！</p>
-      <button class="btn btn-primary" style="justify-content:center; width:100%; margin-top:10px;" onclick="restoreHealthAndContinue()">❤️ 補充生命值並重新回答</button>
+      <p style="font-size:1.1rem; color:#475569; line-height:1.5;">別擔心！試著觀察左邊的<b>「數粒寶箱」</b>與<b>「勇者分得數量」</b>，重新思考後挑戰完整回答本題！</p>
+      <button class="btn btn-primary" style="justify-content:center; width:100%; margin-top:10px;" onclick="restoreHealthAndContinue()">❤️ 補充生命值並重新回答本題</button>
     </div>
   </div>
 
@@ -468,7 +469,6 @@
         `每人：${totalTenPerHero > 0 ? totalTenPerHero + '棒 ' : ''}${totalUnitPerHero > 0 ? totalUnitPerHero + '粒' : (totalTenPerHero===0?'0個':'')} | 共用：${totalUsed}個`;
     }
 
-    // 重點修正：為中間相減與拉下區域 (in_s2) 提供 [百, 十, 個] 三格
     function renderDivisionGrid() {
       const container = document.getElementById('gridContainer');
       container.innerHTML = '';
@@ -505,7 +505,6 @@
             <path d="M ${svgWidth-2} 4 L 0 4 C 16 18, 16 36, 0 50" fill="none" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
           </svg>
 
-          <!-- 第一層乘積，例如 25 x 3 = 75 (佔百位7, 十位5) -->
           <div class="grid-row ${colClass}">
             <div class="cell"><input type="text" class="input-cell" id="in_s1_H" maxlength="1" inputmode="numeric" disabled></div>
             <div class="cell"><input type="text" class="input-cell" id="in_s1_T" maxlength="1" inputmode="numeric" disabled></div>
@@ -514,14 +513,12 @@
 
           <div class="grid-line"></div>
 
-          <!-- 第一層相減與拉下：修復此處！支援百位與十位差 (如 99 - 75 = 24)，再加上拉下的個位數 (如 8) -->
           <div class="grid-row ${colClass}">
             <div class="cell"><input type="text" class="input-cell" id="in_s2_H" maxlength="1" inputmode="numeric" disabled></div>
             <div class="cell"><input type="text" class="input-cell" id="in_s2_T" maxlength="1" inputmode="numeric" disabled></div>
             <div class="cell"><input type="text" class="input-cell" id="in_s2_U" maxlength="1" inputmode="numeric" disabled placeholder="↓"></div>
           </div>
 
-          <!-- 第二層乘積，例如 25 x 9 = 225 (佔百位2, 十位2, 個位5) -->
           <div class="grid-row ${colClass}">
             <div class="cell"><input type="text" class="input-cell" id="in_s3_H" maxlength="1" inputmode="numeric" disabled></div>
             <div class="cell"><input type="text" class="input-cell" id="in_s3_T" maxlength="1" inputmode="numeric" disabled></div>
@@ -530,7 +527,6 @@
 
           <div class="grid-line"></div>
 
-          <!-- 最終餘數，例如 248 - 225 = 23 (佔十位2, 個位3) -->
           <div class="grid-row ${colClass}">
             <div class="cell"></div>
             <div class="cell"><input type="text" class="input-cell" id="in_r_T" maxlength="1" inputmode="numeric" disabled></div>
@@ -581,7 +577,6 @@
       });
     }
 
-    // 重點修正：設定答題步驟，正確計算相減後的【百位】與【十位】差值
     function setupStepSequence() {
       const q = Math.floor(currentDividend / currentDivisor);
       const rem = currentDividend % currentDivisor;
@@ -593,25 +588,21 @@
         const qT_ans = Math.floor(q / 10).toString();
         const qU_ans = (q % 10).toString();
 
-        // 第一層相乘 (十位商 x 除數)，例如 3 x 25 = 75
         const s1_val = Math.floor(q / 10) * currentDivisor;
-        const s1_H_ans = Math.floor(s1_val / 10).toString(); // 百位 (7)
-        const s1_T_ans = (s1_val % 10).toString();            // 十位 (5)
+        const s1_H_ans = Math.floor(s1_val / 10).toString();
+        const s1_T_ans = (s1_val % 10).toString();
 
-        // 第一層相減，例如 99 - 75 = 24
         const dvd_first2 = Math.floor(currentDividend / 10);
         const rem1 = dvd_first2 - s1_val; 
-        const s2_H_ans = Math.floor(rem1 / 10) > 0 ? Math.floor(rem1 / 10).toString() : ''; // 剩餘百位 (2)
-        const s2_T_ans = (rem1 % 10).toString();                                           // 剩餘十位 (4)
-        const s2_U_ans = (currentDividend % 10).toString();                                 // 拉下的個位 (8)
+        const s2_H_ans = Math.floor(rem1 / 10) > 0 ? Math.floor(rem1 / 10).toString() : '';
+        const s2_T_ans = (rem1 % 10).toString();
+        const s2_U_ans = (currentDividend % 10).toString();
 
-        // 第二層相乘 (個位商 x 除數)，例如 9 x 25 = 225
         const s3_val = (q % 10) * currentDivisor;
-        const s3_H_ans = Math.floor(s3_val / 100).toString();                   // 百位 (2)
-        const s3_T_ans = Math.floor((s3_val % 100) / 10).toString();             // 十位 (2)
-        const s3_U_ans = (s3_val % 10).toString();                              // 個位 (5)
+        const s3_H_ans = Math.floor(s3_val / 100).toString();
+        const s3_T_ans = Math.floor((s3_val % 100) / 10).toString();
+        const s3_U_ans = (s3_val % 10).toString();
 
-        // 最終餘數，例如 248 - 225 = 23
         const r_T_ans = (rem >= 10) ? Math.floor(rem / 10).toString() : '';
         const r_U_ans = (rem % 10).toString();
 
@@ -619,7 +610,6 @@
         fillSequence.push({ id: 'in_s1_H', expected: s1_H_ans, desc: '👉 請填寫十位共用去數量的【百位】' });
         fillSequence.push({ id: 'in_s1_T', expected: s1_T_ans, desc: '👉 請填寫十位共用去數量的【十位】' });
         
-        // 如果相減有百位差 (例如 99 - 75 = 24，百位剩2)，引導填寫百位
         if (s2_H_ans !== '') {
           fillSequence.push({ id: 'in_s2_H', expected: s2_H_ans, desc: '👉 請填寫減完剩餘的【百位數】' });
         }
@@ -737,21 +727,24 @@
       }
     }
 
+    /* 補充生命值時：完全重置全部直式格子與答題進度，讓學生重新完整回答該題 */
     function restoreHealthAndContinue() {
+      document.getElementById('outOfHealthModal').style.display = 'none';
+      
+      // 1. 清空所有直式輸入格樣式與數值
+      document.querySelectorAll('.input-cell').forEach(inp => {
+        inp.value = '';
+        inp.className = 'input-cell';
+        inp.disabled = true;
+      });
+
+      // 2. 恢復生命值與錯誤計數
       healthPoints = 3;
       consecutiveErrors = 0;
       updateHealthUI();
-      document.getElementById('outOfHealthModal').style.display = 'none';
-      
-      if (currentStepIdx < fillSequence.length) {
-        const currentStep = fillSequence[currentStepIdx];
-        const inputEl = document.getElementById(currentStep.id);
-        if (inputEl) {
-          inputEl.value = '';
-          inputEl.classList.remove('wrong');
-        }
-      }
-      
+
+      // 3. 重置步驟並重新聚焦第一步
+      currentStepIdx = 0;
       focusCurrentStep();
     }
 
